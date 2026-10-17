@@ -9,5 +9,11 @@ services:
         value: production
       - key: PORT
         value: 3000
-    # Set these in the Render dashboard:
-    # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, SESSION_SECRET, JWT_SECRET, BASE_URL
+      - key: BASE_URL
+        value: https://personalplanner.daniellecrizaldo.com
+    # Set these secrets in the Render dashboard:
+    # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, SESSION_SECRET, JWT_SECRET
+    disk:
+      name: personalplanner-data
+      mountPath: /app/data
+      sizeGB: 1
