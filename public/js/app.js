@@ -1946,7 +1946,7 @@ document.addEventListener('keydown', e => {
     case 'Escape': closeDesktopAlert(); break;
     case 'Enter': openAlertDetails(); break;
     case 's': case 'S': snoozeAlert(); break;
-    case 'a': case 'A': ack = closeDesktopAlert(); break;
+    case 'a': case 'A': closeDesktopAlert(); break;
   }
 });
 
