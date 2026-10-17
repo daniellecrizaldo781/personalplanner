@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: personalplanner
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    # Set these in the Render dashboard:
+    # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, SESSION_SECRET, JWT_SECRET, BASE_URL
