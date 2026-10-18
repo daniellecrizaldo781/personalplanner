@@ -1,4 +1,4 @@
-// ===== PersonalPlanner App (Static, localStorage-based) =====
+// ===== Danielle's Planner App (Static, localStorage-based) =====
 
 const dayjs = window.dayjs;
 
@@ -141,6 +141,7 @@ function renderPage(page) {
   document.querySelectorAll('.sidebar-link').forEach(link => {
     link.classList.toggle('active', link.dataset.page === page);
   });
+  renderPageTabs(page);
   loadData();
   renderContent(document.getElementById('content-wrapper'), page);
   document.getElementById('sidebar').classList.remove('show');
@@ -150,6 +151,25 @@ function renderPage(page) {
 function getPageTitle(page) {
   const titles = { dashboard: 'Dashboard', tasks: 'My Tasks', completed: 'Completed Tasks', notes: 'Important Notes', meetings: 'Meeting Notes', cascades: 'Team Cascades', settings: 'Settings' };
   return titles[page] || 'Dashboard';
+}
+
+function renderPageTabs(currentPage) {
+  const pages = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'bi bi-speedometer2' },
+    { id: 'tasks', label: 'My Tasks', icon: 'bi bi-clipboard-task' },
+    { id: 'completed', label: 'Completed', icon: 'bi bi-check-circle' },
+    { id: 'notes', label: 'Notes', icon: 'bi bi-journal-richtext' },
+    { id: 'meetings', label: 'Meetings', icon: 'bi bi-people' },
+    { id: 'cascades', label: 'Cascades', icon: 'bi bi-megaphone' },
+    { id: 'settings', label: 'Settings', icon: 'bi bi-gear' }
+  ];
+  const tabsContainer = document.getElementById('page-tabs');
+  if (!tabsContainer) return;
+  tabsContainer.innerHTML = pages.map(p => `
+    <button type="button" class="page-tab-btn ${p.id === currentPage ? 'active' : ''}" onclick="renderPage('${p.id}')">
+      <i class="${p.icon}"></i> ${p.label}
+    </button>
+  `).join('');
 }
 
 async function renderContent(container, page) {
@@ -204,6 +224,19 @@ async function renderDashboard(container) {
   const upcomingMeetings = meetings
     .filter(m => m.date_time && m.date_time >= now && m.is_archived === 0)
     .sort((a, b) => (a.date_time || '').localeCompare(b.date_time || ''))
+    .slice(0, 5);
+
+  const recentCascades = cascades
+    .filter(c => c.status === 'Cascaded' && c.date_cascaded)
+    .sort((a, b) => (b.date_cascaded || '').localeCompare(a.date_cascaded || ''))
+    .slice(0, 5);
+
+  const outstandingActions = meetings
+    .filter(m => m.is_archived === 0)
+    .flatMap(m => {
+      const actions = Array.isArray(m.action_items) ? m.action_items : JSON.parse(m.action_items || '[]');
+      return actions.filter(a => !a.done).map(a => ({ ...a, meeting: m.title }));
+    })
     .slice(0, 5);
 
   let overdueAlert = '';
@@ -275,6 +308,34 @@ async function renderDashboard(container) {
         <button class="btn btn-pink" onclick="openMeetingModal()"><i class="bi bi-people"></i> New Meeting</button>
         <button class="btn btn-pink" onclick="openCascadeModal()"><i class="bi bi-megaphone"></i> New Cascade</button>
       </div></div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="card"><div class="card-header"><i class="bi bi-arrow-up-right-square me-2"></i>Recently Cascaded</div>
+          <div class="card-body p-0">
+            ${recentCascades.length > 0
+              ? `<ul class="list-group list-group-flush">` + recentCascades.map(c => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div><strong>${escapeHtml(c.title)}</strong><div class="text-muted small">Cascaded ${c.date_cascaded ? dayjs(c.date_cascaded).format('MMM D, YYYY') : ''}</div></div>
+                  <span class="badge bg-secondary">${c.brand_project || 'General'}</span>
+                </li>`).join('') + `</ul>`
+              : `<div class="empty-state"><i class="bi bi-megaphone"></i><p>No recent cascades</p></div>`}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card"><div class="card-header"><i class="bi bi-clipboard-task me-2"></i>Outstanding Action Items</div>
+          <div class="card-body p-0">
+            ${outstandingActions.length > 0
+              ? `<ul class="list-group list-group-flush">` + outstandingActions.map(a => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div><strong>${escapeHtml(a.text || '')}</strong><div class="text-muted small">From: ${escapeHtml(a.meeting || '')}${a.assignee ? ' • ' + a.assignee : ''}</div></div>
+                </li>`).join('') + `</ul>`
+              : `<div class="empty-state"><i class="bi bi-check-clipboard"></i><p>No outstanding action items</p></div>`}
+          </div>
+        </div>
+      </div>
     </div>
     ${overdueAlert}
     ${urgentAlert}
@@ -1091,7 +1152,7 @@ async function renderSettingsPage(container) {
     <div class="card mb-4">
       <div class="card-header">About</div>
       <div class="card-body">
-        <p class="text-muted small">PersonalPlanner v1.0<br>Data is stored in your browser's local storage. It persists across page refreshes but is not synced across devices.</p>
+        <p class="text-muted small">Danielle's Planner v1.0<br>Data is stored in your browser's local storage. It persists across page refreshes but is not synced across devices.</p>
       </div>
     </div>
   `;
@@ -1109,7 +1170,7 @@ function exportData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `personalplanner-export-${dayjs().format('YYYY-MM-DD-HHmmss')}.json`;
+  a.download = `danielle-planner-export-${dayjs().format('YYYY-MM-DD-HHmmss')}.json`;
   a.click();
   URL.revokeObjectURL(url);
   showSuccess('Data exported!');

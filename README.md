@@ -1,6 +1,6 @@
-# PersonalPlanner
+# Danielle's Planner
 
-A polished, personal productivity dashboard built as a self-contained static web application. Designed with a soft pastel pink aesthetic, PersonalPlanner provides task management, important notes, meeting notes, team cascades, and global search — all running entirely in your browser with no backend required.
+A polished, personal productivity dashboard built as a self-contained static web application. Designed with a soft pastel pink aesthetic, Danielle's Planner provides task management, important notes, meeting notes, team cascades, and global search — all running entirely in your browser with no backend required.
 
 ## Features
 

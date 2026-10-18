@@ -623,3 +623,61 @@ body {
   z-index: 1;
 }
 
+/* Bottom decorative chibi */
+.bottom-chibi {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  opacity: 0.4;
+  z-index: 900;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  animation: bounce 4s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(-15px); opacity: 0.5; }
+}
+
+/* Page tabs on top of page */
+.page-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 0 4px;
+  border-bottom: 2px solid var(--neutral-muted);
+  margin-bottom: 20px;
+}
+
+.page-tab-btn {
+  background: var(--neutral-light);
+  border: 1px solid var(--neutral-muted);
+  border-bottom: none;
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--neutral-text);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+}
+
+.page-tab-btn:hover {
+  background: var(--pink-primary);
+  color: var(--pink-darker);
+}
+
+.page-tab-btn.active {
+  background: linear-gradient(135deg, var(--pink-strong), var(--pink-dark));
+  color: white;
+  border-color: var(--pink-strong);
+  border-bottom: 2px solid var(--white);
+  font-weight: 600;
+}
+
