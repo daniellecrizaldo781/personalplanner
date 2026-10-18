@@ -1,6 +1,4 @@
-node_modules/
+.idea/
 *.log
-npm-debug.log*
-.env
 data/
-.DS_Store
+
