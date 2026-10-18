@@ -217,6 +217,17 @@ async function renderDashboard(container) {
   }
 
   container.innerHTML = `
+    <div class="dashboard-header">
+      <div class="dashboard-title-row">
+        <h2 class="dashboard-welcome">Welcome back, Danielle! <span class="waving-hand">👋</span></h2>
+        <div class="dashboard-chibis">
+          <img src="assets/img/chibi-dog.svg" alt="Chibi Dog" class="chibi-float" width="48" height="48">
+          <img src="assets/img/chibi-cat.svg" alt="Chibi Cat" class="chibi-float" width="48" height="48">
+        </div>
+      </div>
+      <p class="dashboard-subtitle">Here's what's on your plate today</p>
+    </div>
+
     <div class="dashboard-grid">
       <div class="dashboard-widget"><div class="widget-header"><span class="widget-title">Pending Tasks</span><a href="#" class="widget-link" onclick="renderPage('tasks')">View All</a></div><div class="widget-value">${pending}</div></div>
       <div class="dashboard-widget"><div class="widget-header"><span class="widget-title">In Progress</span><a href="#" class="widget-link" onclick="renderPage('tasks')">View All</a></div><div class="widget-value">${inProgress}</div></div>
