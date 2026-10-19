@@ -13,49 +13,44 @@
 <body>
   <!-- Top Decorative Banner -->
   <div class="top-banner">
-    <img src="assets/img/chibi-dog.svg" alt="Chibi Dog" class="chibi-sticker chibi-dog">
-    <img src="assets/img/chibi-cat.svg" alt="Chibi Cat" class="chibi-sticker chibi-cat">
+    <img src="assets/img/chibi-heart.svg" alt="Heart" class="chibi-sticker chibi-heart">
+    <img src="assets/img/chibi-butterfly.svg" alt="Butterfly" class="chibi-sticker chibi-butterfly">
   </div>
 
   <div class="app-container">
-    <!-- Sidebar -->
-    <nav class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-title-row">
-          <h2 class="sidebar-title">Danielle's Planner</h2>
-          <img src="assets/img/chibi-cat.svg" alt="Cat" class="sidebar-chibi" width="32" height="32">
+    <!-- Top Navigation Bar (moved from sidebar) -->
+    <nav class="top-navbar" id="top-navbar">
+      <div class="top-navbar-header">
+        <div class="top-navbar-title-row">
+          <img src="assets/img/chibi-heart.svg" alt="Heart" class="nav-chibi" width="32" height="32">
+          <h2 class="top-navbar-title">Danielle's Planner</h2>
         </div>
-        <button class="btn btn-sm sidebar-toggle d-lg-none" id="sidebar-toggle">
+        <button class="btn btn-sm nav-toggle d-lg-none" id="nav-toggle">
           <i class="bi bi-x-lg"></i>
         </button>
       </div>
-      <div class="sidebar-nav">
-        <a href="#" class="sidebar-link active" data-page="dashboard">
+      <div class="top-navbar-nav" id="top-navbar-nav">
+        <a href="#" class="nav-link active" data-page="dashboard">
           <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-        <a href="#" class="sidebar-link" data-page="tasks">
+        <a href="#" class="nav-link" data-page="tasks">
           <i class="bi bi-clipboard-task"></i> My Tasks
         </a>
-        <a href="#" class="sidebar-link" data-page="completed">
+        <a href="#" class="nav-link" data-page="completed">
           <i class="bi bi-check-circle"></i> Completed Tasks
         </a>
-        <a href="#" class="sidebar-link" data-page="notes">
+        <a href="#" class="nav-link" data-page="notes">
           <i class="bi bi-journal-richtext"></i> Important Notes
         </a>
-        <a href="#" class="sidebar-link" data-page="meetings">
+        <a href="#" class="nav-link" data-page="meetings">
           <i class="bi bi-people"></i> Meeting Notes
         </a>
-        <a href="#" class="sidebar-link" data-page="cascades">
+        <a href="#" class="nav-link" data-page="cascades">
           <i class="bi bi-megaphone"></i> Team Cascades
         </a>
-        <a href="#" class="sidebar-link" data-page="settings">
+        <a href="#" class="nav-link" data-page="settings">
           <i class="bi bi-gear"></i> Settings
         </a>
-      </div>
-      <div class="sidebar-footer">
-        <button class="btn btn-sm btn-outline-danger w-100" id="export-data-btn">
-          <i class="bi bi-download"></i> Export Data
-        </button>
       </div>
     </nav>
 
@@ -63,7 +58,7 @@
     <main class="main-content" id="main-content">
       <div class="top-bar">
         <div class="d-flex align-items-center">
-          <button class="btn btn-sm sidebar-toggle d-lg-none me-3" id="sidebar-open">
+          <button class="btn btn-sm nav-toggle d-lg-none me-3" id="nav-open">
             <i class="bi bi-list"></i>
           </button>
           <h1 class="page-title" id="page-title">Dashboard</h1>
@@ -86,7 +81,9 @@
     </main>
   </div>
 
-  <img src="assets/img/chibi-dog.svg" alt="Chibi Dog" class="bottom-chibi">
+  <!-- Bottom Decorative Elements -->
+  <img src="assets/img/chibi-butterfly.svg" alt="Butterfly" class="bottom-chibi bottom-butterfly">
+  <img src="assets/img/chibi-heart.svg" alt="Heart" class="bottom-chibi bottom-heart">
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>

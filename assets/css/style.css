@@ -447,12 +447,12 @@ body {
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
 }
 
-.chibi-dog {
+.chibi-heart {
   animation: bob 2.5s ease-in-out infinite;
   transform-origin: center bottom;
 }
 
-.chibi-cat {
+.chibi-butterfly {
   animation: bob 2.5s ease-in-out infinite;
   animation-delay: 0.3s;
   transform-origin: center bottom;

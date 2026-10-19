@@ -38,18 +38,18 @@ function loadData() {
 
 // ===== Event Listeners =====
 function setupEventListeners() {
-  document.querySelectorAll('.sidebar-link').forEach(link => {
+  document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
       renderPage(link.dataset.page);
     });
   });
 
-  document.getElementById('sidebar-toggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.remove('show');
+  document.getElementById('nav-toggle').addEventListener('click', () => {
+    document.getElementById('top-navbar-nav').classList.remove('show');
   });
-  document.getElementById('sidebar-open').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.add('show');
+  document.getElementById('nav-open').addEventListener('click', () => {
+    document.getElementById('top-navbar-nav').classList.add('show');
   });
 
   document.getElementById('theme-toggle').addEventListener('click', () => {
@@ -138,13 +138,13 @@ function logTaskHistory(taskId, action, details) {
 function renderPage(page) {
   state.currentPage = page;
   document.getElementById('page-title').textContent = getPageTitle(page);
-  document.querySelectorAll('.sidebar-link').forEach(link => {
+  document.querySelectorAll('.nav-link').forEach(link => {
     link.classList.toggle('active', link.dataset.page === page);
   });
   renderPageTabs(page);
   loadData();
   renderContent(document.getElementById('content-wrapper'), page);
-  document.getElementById('sidebar').classList.remove('show');
+  document.getElementById('top-navbar-nav').classList.remove('show');
   document.getElementById('global-search-dropdown')?.classList.remove('show');
 }
 
@@ -254,8 +254,8 @@ async function renderDashboard(container) {
       <div class="dashboard-title-row">
         <h2 class="dashboard-welcome">Welcome back, Danielle! <span class="waving-hand">👋</span></h2>
         <div class="dashboard-chibis">
-          <img src="assets/img/chibi-dog.svg" alt="Chibi Dog" class="chibi-float" width="48" height="48">
-          <img src="assets/img/chibi-cat.svg" alt="Chibi Cat" class="chibi-float" width="48" height="48">
+          <img src="assets/img/chibi-heart.svg" alt="Heart" class="chibi-float" width="48" height="48">
+          <img src="assets/img/chibi-butterfly.svg" alt="Butterfly" class="chibi-float" width="48" height="48">
         </div>
       </div>
       <p class="dashboard-subtitle">Here's what's on your plate today</p>
