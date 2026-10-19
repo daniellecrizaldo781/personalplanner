@@ -253,10 +253,6 @@ async function renderDashboard(container) {
     <div class="dashboard-header">
       <div class="dashboard-title-row">
         <h2 class="dashboard-welcome">Welcome back, Danielle! <span class="waving-hand">👋</span></h2>
-        <div class="dashboard-chibis">
-          <img src="assets/img/chibi-heart.svg" alt="Heart" class="chibi-float" width="48" height="48">
-          <img src="assets/img/chibi-butterfly.svg" alt="Butterfly" class="chibi-float" width="48" height="48">
-        </div>
       </div>
       <p class="dashboard-subtitle">Here's what's on your plate today</p>
     </div>
