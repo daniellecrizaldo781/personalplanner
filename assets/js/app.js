@@ -60,23 +60,16 @@ function setupEventListeners() {
     updateThemeIcon();
   });
 
-  const searchInput = document.getElementById('global-search');
-  let searchTimeout;
-  searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(performGlobalSearch, 300);
-  });
-  searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') performGlobalSearch();
+  document.querySelectorAll('.nav-group-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const group = btn.dataset.group;
+      const items = document.getElementById(group + '-group');
+      if (items) items.classList.toggle('show');
+    });
   });
 
-  document.addEventListener('click', e => {
-    if (!e.target.closest('#global-search-container')) {
-      document.getElementById('global-search-dropdown')?.classList.remove('show');
-    }
-  });
-
-  document.getElementById('export-data-btn').addEventListener('click', exportData);
+  const exportBtn = document.getElementById('export-data-btn');
+  if (exportBtn) exportBtn.addEventListener('click', exportData);
 }
 
 // ===== Utility Functions =====
@@ -149,7 +142,7 @@ function renderPage(page) {
 }
 
 function getPageTitle(page) {
-  const titles = { dashboard: 'Dashboard', tasks: 'My Tasks', completed: 'Completed Tasks', notes: 'Important Notes', meetings: 'Meeting Notes', cascades: 'Team Cascades', settings: 'Settings' };
+  const titles = { dashboard: 'Home', calendar: 'Calendar', 'work-tasks': 'Work Tasks', 'personal-tasks': 'Personal Tasks', 'all-tasks': 'All Tasks', tasks: 'My Tasks', completed: 'Completed Tasks', notes: 'Notes', 'work-notes': 'Work Notes', 'personal-notes': 'Personal Notes', meetings: 'Meeting Notes', 'work-meetings': 'Work Meetings', 'personal-events': 'Personal Events', cascades: 'Team Cascades', settings: 'Settings' };
   return titles[page] || 'Dashboard';
 }
 
@@ -176,12 +169,20 @@ async function renderContent(container, page) {
   try {
     switch (page) {
       case 'dashboard': await renderDashboard(container); break;
+      case 'calendar': await renderCalendar(container); break;
+      case 'work-tasks':
+      case 'personal-tasks':
+      case 'all-tasks':
       case 'tasks': await renderTasksPage(container); break;
       case 'completed': await renderCompletedPage(container); break;
+      case 'work-notes':
+      case 'personal-notes':
       case 'notes': await renderNotesPage(container); break;
-      case 'meetings': await renderMeetingsPage(container); break;
+      case 'work-meetings': await renderMeetingsPage(container); break;
+      case 'personal-events': await renderPersonalEvents(container); break;
       case 'cascades': await renderCascadesPage(container); break;
       case 'settings': await renderSettingsPage(container); break;
+      default: container.innerHTML = `<div class="empty-state"><i class="bi bi-construction"></i><h4>${getPageTitle(page)}</h4><p>Coming soon.</p></div>`; break;
     }
   } catch (e) {
     container.innerHTML = `<div class="alert alert-danger">Error loading page: ${e.message}</div>`;
@@ -338,6 +339,15 @@ async function renderDashboard(container) {
   `;
 }
 
+// ===== Calendar Page =====
+async function renderCalendar(container) {
+  container.innerHTML = `<div class="empty-state"><i class="bi bi-calendar-heart"></i><h4>Calendar</h4><p>Coming soon.</p></div>`;
+}
+
+// ===== Personal Events Page =====
+async function renderPersonalEvents(container) {
+  container.innerHTML = `<div class="empty-state"><i class="bi bi-calendar-event"></i><h4>Personal Events</h4><p>Coming soon.</p></div>`;
+}
 // ===== Tasks Page =====
 async function renderTasksPage(container) {
   const tasks = Storage.getAll('tasks').filter(t => t.status !== 'Completed');
