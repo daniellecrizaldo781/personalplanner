@@ -336,8 +336,131 @@ async function renderDashboard(container) {
 }
 
 // ===== Calendar Page =====
+let calendarView = 'month';
+let calendarDate = dayjs();
+
 async function renderCalendar(container) {
-  container.innerHTML = `<div class="empty-state"><i class="bi bi-calendar-heart"></i><h4>Calendar</h4><p>Coming soon.</p></div>`;
+  const tasks = Storage.getAll('tasks');
+  const meetings = Storage.getAll('meetings');
+
+  container.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h2 class="mb-0">Calendar</h2>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <button class="btn btn-sm btn-outline-secondary" onclick="calPrev()"><i class="bi bi-chevron-left"></i></button>
+        <span class="fw-semibold" id="cal-label">${calendarLabel()}</span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="calNext()"><i class="bi bi-chevron-right"></i></button>
+        <button class="btn btn-sm btn-pink" onclick="calToday()">Today</button>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-secondary ${calendarView==='month'?'active':''}" onclick="calSetView('month')">Month</button>
+          <button class="btn btn-outline-secondary ${calendarView==='week'?'active':''}" onclick="calSetView('week')">Week</button>
+          <button class="btn btn-outline-secondary ${calendarView==='day'?'active':''}" onclick="calSetView('day')">Day</button>
+        </div>
+      </div>
+    </div>
+    <div id="cal-body"></div>
+    <div id="cal-day-detail" class="mt-3"></div>
+  `;
+  renderCalBody(tasks, meetings);
+}
+
+function calendarLabel() {
+  if (calendarView === 'month') return calendarDate.format('MMMM YYYY');
+  if (calendarView === 'week') {
+    const start = calendarDate.startOf('week');
+    return `${start.format('MMM D')} – ${start.add(6,'day').format('MMM D, YYYY')}`;
+  }
+  return calendarDate.format('dddd, MMMM D, YYYY');
+}
+
+function calPrev() {
+  if (calendarView === 'month') calendarDate = calendarDate.subtract(1,'month');
+  else if (calendarView === 'week') calendarDate = calendarDate.subtract(1,'week');
+  else calendarDate = calendarDate.subtract(1,'day');
+  renderPage('calendar');
+}
+function calNext() {
+  if (calendarView === 'month') calendarDate = calendarDate.add(1,'month');
+  else if (calendarView === 'week') calendarDate = calendarDate.add(1,'week');
+  else calendarDate = calendarDate.add(1,'day');
+  renderPage('calendar');
+}
+function calToday() { calendarDate = dayjs(); renderPage('calendar'); }
+function calSetView(v) { calendarView = v; renderPage('calendar'); }
+
+function tasksForDate(dateStr, tasks, meetings) {
+  const t = tasks.filter(x => x.due_date === dateStr);
+  const m = meetings.filter(x => x.date_time && x.date_time.startsWith(dateStr));
+  return { tasks: t, meetings: m };
+}
+
+function renderCalBody(tasks, meetings) {
+  const body = document.getElementById('cal-body');
+  if (calendarView === 'month') {
+    const start = calendarDate.startOf('month').startOf('week');
+    const end = calendarDate.endOf('month').endOf('week');
+    let html = '<div class="cal-grid cal-month">';
+    html += ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-head">${d}</div>`).join('');
+    let d = start;
+    while (d.isBefore(end) || d.isSame(end,'day')) {
+      const isToday = d.isSame(dayjs(),'day');
+      const inMonth = d.month() === calendarDate.month();
+      const ds = d.format('YYYY-MM-DD');
+      const {tasks:ts, meetings:ms} = tasksForDate(ds, tasks, meetings);
+      const dots = ts.map(t=>`<span class="cal-dot task"></span>`).concat(ms.map(()=>`<span class="cal-dot meeting"></span>`)).join('');
+      html += `<div class="cal-cell ${isToday?'today':''} ${inMonth?'':'other-month'}" onclick="showDayDetail('${ds}')">
+        <div class="cal-daynum">${d.date()}</div>
+        <div class="cal-dots">${dots}</div>
+        ${ts.length+ms.length>0?`<div class="cal-count">${ts.length+ms.length}</div>`:''}
+      </div>`;
+      d = d.add(1,'day');
+    }
+    html += '</div>';
+    body.innerHTML = html;
+  } else if (calendarView === 'week') {
+    const start = calendarDate.startOf('week');
+    let html = '<div class="cal-grid cal-week">';
+    for (let i=0;i<7;i++){
+      const d = start.add(i,'day');
+      const ds = d.format('YYYY-MM-DD');
+      const {tasks:ts, meetings:ms} = tasksForDate(ds, tasks, meetings);
+      const isToday = d.isSame(dayjs(),'day');
+      html += `<div class="cal-week-col ${isToday?'today':''}">
+        <div class="cal-week-head">${d.format('ddd')}<br><strong>${d.date()}</strong></div>
+        <div class="cal-week-items">
+          ${ms.map(m=>`<div class="cal-item meeting">${escapeHtml(m.title)}<br><small>${m.date_time?dayjs(m.date_time).format('h:mm A'):''}</small></div>`).join('')}
+          ${ts.map(t=>`<div class="cal-item task">${escapeHtml(t.title)}${t.due_time?'<br><small>'+t.due_time+'</small>':''}</div>`).join('')}
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+    body.innerHTML = html;
+  } else {
+    const ds = calendarDate.format('YYYY-MM-DD');
+    const {tasks:ts, meetings:ms} = tasksForDate(ds, tasks, meetings);
+    body.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <h5>Meetings</h5>
+          ${ms.length?ms.map(m=>`<div class="cal-item meeting mb-2">${escapeHtml(m.title)} <small class="text-muted">${m.date_time?dayjs(m.date_time).format('h:mm A'):''}</small></div>`).join(''):'<p class="text-muted small">No meetings</p>'}
+          <h5 class="mt-3">Tasks due</h5>
+          ${ts.length?ts.map(t=>`<div class="cal-item task mb-2">${escapeHtml(t.title)} ${t.due_time?'<small>'+t.due_time+'</small>':''}</div>`).join(''):'<p class="text-muted small">No tasks</p>'}
+        </div>
+      </div>`;
+  }
+}
+
+function showDayDetail(ds) {
+  const tasks = Storage.getAll('tasks');
+  const meetings = Storage.getAll('meetings');
+  const {tasks:ts, meetings:ms} = tasksForDate(ds, tasks, meetings);
+  const el = document.getElementById('cal-day-detail');
+  if (!el) return;
+  if (!ts.length && !ms.length) { el.innerHTML = `<div class="empty-state"><i class="bi bi-calendar-x"></i><p>Nothing on ${dayjs(ds).format('MMM D')}</p></div>`; return; }
+  el.innerHTML = `<div class="card"><div class="card-header"><i class="bi bi-calendar-day me-2"></i>${dayjs(ds).format('dddd, MMMM D, YYYY')}</div><div class="card-body">
+    ${ms.map(m=>`<div class="cal-item meeting mb-2"><strong>${escapeHtml(m.title)}</strong><div class="text-muted small">${m.date_time?dayjs(m.date_time).format('h:mm A'):''} ${m.related_project?'• '+escapeHtml(m.related_project):''}</div></div>`).join('')}
+    ${ts.map(t=>`<div class="cal-item task mb-2"><strong>${escapeHtml(t.title)}</strong><div class="text-muted small">${t.due_time||''} ${t.priority?'• '+t.priority:''}</div></div>`).join('')}
+  </div></div>`;
 }
 
 // ===== Personal Events Page =====
@@ -1144,7 +1267,16 @@ async function renderSettingsPage(container) {
       </div>
     </div>
     <div class="card mb-4">
-      <div class="card-header">Data Management</div>
+      <div class="card-header">Calendar Integration</div>
+      <div class="card-body">
+        <label class="form-label">Import iCal feed URL (public Google/Outlook calendar)</label>
+        <div class="input-group mb-2">
+          <input type="url" class="form-control" id="ical-url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
+          <button class="btn btn-pink" onclick="importIcal()">Import</button>
+        </div>
+        <small class="text-muted">Events are imported into local storage. Re-import to refresh. Public feeds only (no auth).</small>
+      </div>
+    </div>
       <div class="card-body">
         <button class="btn btn-pink" onclick="exportData()"><i class="bi bi-download"></i> Export All Data</button>
         <button class="btn btn-outline-secondary" onclick="importData()">Import Data</button>
@@ -1160,6 +1292,52 @@ async function renderSettingsPage(container) {
   `;
 }
 
+async function importIcal() {
+  const url = document.getElementById('ical-url').value.trim();
+  if (!url) { showError('Enter a feed URL'); return; }
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const events = parseIcal(text);
+    const existing = Storage.getAll('meetings');
+    let added = 0;
+    events.forEach(e => {
+      if (existing.some(x => x.title === e.title && x.date_time === e.date_time)) return;
+      Storage.add('meetings', { title: e.title, date_time: e.date_time, attendees: [], agenda: e.description || '', discussion_notes: '', decisions: '', action_items: [], related_project: 'Imported', is_archived: 0 });
+      added++;
+    });
+    loadData();
+    showSuccess(`Imported ${added} events`);
+  } catch (e) { showError('Import failed: ' + e.message); }
+}
+
+function parseIcal(text) {
+  const lines = text.replace(/\r\n /g,'').split(/\r?\n/);
+  const events = [];
+  let cur = null;
+  for (const line of lines) {
+    if (line === 'BEGIN:VEVENT') { cur = {}; continue; }
+    if (line === 'END:VEVENT') { if (cur && cur.dtstart) events.push(cur); cur = null; continue; }
+    if (!cur) continue;
+    const [key, ...rest] = line.split(':');
+    const val = rest.join(':');
+    if (key.startsWith('SUMMARY')) cur.title = val;
+    else if (key.startsWith('DTSTART')) cur.dtstart = val;
+    else if (key.startsWith('DESCRIPTION')) cur.description = val;
+  }
+  return events.map(e => {
+    let dt = e.dtstart;
+    // handle YYYYMMDD or YYYYMMDDTHHMMSSZ
+    if (/^\d{8}$/.test(dt)) {
+      const y=dt.slice(0,4), m=dt.slice(4,6), d=dt.slice(6,8);
+      dt = `${y}-${m}-${d}T00:00`;
+    } else if (/^\d{8}T\d{6}Z?$/.test(dt)) {
+      const y=dt.slice(0,4), m=dt.slice(4,6), d=dt.slice(6,8), hh=dt.slice(9,11), mm=dt.slice(11,13);
+      dt = `${y}-${m}-${d}T${hh}:${mm}`;
+    }
+    return { title: e.title || 'Untitled', date_time: dt, description: e.description || '' };
+  });
+}
 function saveSetting(key, value) {
   state.settings[key] = value;
   Storage.saveSettings(state.settings);
