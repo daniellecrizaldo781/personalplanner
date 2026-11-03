@@ -260,7 +260,19 @@ async function renderDashboard(container) {
       <div class="dashboard-title-row">
         <h2 class="dashboard-welcome">Welcome back, Danielle! <span class="waving-hand">👋</span></h2>
       </div>
-      <p class="dashboard-subtitle">Here's what's on your plate today</p>
+      <p class="dashboard-subtitle">Here's what's on your plate today — ${dayjs().format('dddd, MMMM D, YYYY')}</p>
+    </div>
+
+    <div class="quick-add mb-4">
+      <input type="text" class="form-control" id="dash-quick-add" placeholder="Quick add a task... (Enter)" onkeydown="if(event.key==='Enter'){dashQuickAdd();}">
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-calendar-day me-2"></i>Today's Schedule</div>
+      <div class="card-body p-0">
+        ${renderTodaySchedule(upcomingMeetings, activeTasks.filter(t => t.due_date === today))}
+      </div>
+    </div>
     </div>
 
     <div class="dashboard-grid">
@@ -1355,6 +1367,28 @@ async function quickAddTask() {
   input.value = '';
   loadData();
   renderTasksPage(document.getElementById('content-wrapper'));
+}
+function renderTodaySchedule(meetings, tasks) {
+  const items = [];
+  meetings.forEach(m => items.push({ type: 'meeting', time: m.date_time ? dayjs(m.date_time).format('HH:mm') : '', title: m.title, sub: m.related_project || '' }));
+  tasks.forEach(t => items.push({ type: 'task', time: t.due_time || '', title: t.title, sub: t.priority || '' }));
+  items.sort((a,b) => (a.time||'99:99').localeCompare(b.time||'99:99'));
+  if (!items.length) return '<div class="empty-state"><i class="bi bi-calendar-check"></i><p>Nothing scheduled today</p></div>';
+  return '<ul class="list-group list-group-flush">' + items.map(i => `
+    <li class="list-group-item d-flex align-items-center gap-3">
+      <span class="badge ${i.type==='meeting'?'bg-primary':'bg-info text-dark'}">${i.type==='meeting'?'Meeting':'Task'}</span>
+      <div class="flex-grow-1"><strong>${escapeHtml(i.title)}</strong><div class="text-muted small">${i.time ? i.time : 'All day'}${i.sub ? ' • ' + escapeHtml(i.sub) : ''}</div></div>
+    </li>`).join('') + '</ul>';
+}
+
+async function dashQuickAdd() {
+  const input = document.getElementById('dash-quick-add');
+  const title = input.value.trim();
+  if (!title) return;
+  Storage.add('tasks', { title, description: '', category: 'General', priority: 'Normal', status: 'Pending', due_date: '', due_time: '', checklist: [], is_recurring: 0, notes: '' });
+  input.value = '';
+  loadData();
+  renderDashboard(document.getElementById('content-wrapper'));
 }
 function saveSetting(key, value) {
   state.settings[key] = value;
