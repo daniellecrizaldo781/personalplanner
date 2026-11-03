@@ -60,13 +60,22 @@ function setupEventListeners() {
     updateThemeIcon();
   });
 
-  document.querySelectorAll('.nav-group-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const group = btn.dataset.group;
-      const items = document.getElementById(group + '-group');
-      if (items) items.classList.toggle('show');
-    });
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'n' || e.key === 'N') { e.preventDefault(); openTaskModal(); }
+    if (e.key === '/') { e.preventDefault(); const s = document.getElementById('global-search'); if (s) s.focus(); }
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal.show').forEach(m => bootstrap.Modal.getInstance(m)?.hide());
+    }
   });
+
+  // Mobile nav toggle
+  const navOpen = document.getElementById('nav-open');
+  const navToggle = document.getElementById('nav-toggle');
+  const nav = document.getElementById('top-navbar-nav');
+  if (navOpen) navOpen.addEventListener('click', () => nav.classList.add('show'));
+  if (navToggle) navToggle.addEventListener('click', () => nav.classList.remove('show'));
 
   const exportBtn = document.getElementById('export-data-btn');
   if (exportBtn) exportBtn.addEventListener('click', exportData);
@@ -1337,6 +1346,15 @@ function parseIcal(text) {
     }
     return { title: e.title || 'Untitled', date_time: dt, description: e.description || '' };
   });
+}
+async function quickAddTask() {
+  const input = document.getElementById('quick-add-input');
+  const title = input.value.trim();
+  if (!title) return;
+  Storage.add('tasks', { title, description: '', category: 'General', priority: 'Normal', status: 'Pending', due_date: '', due_time: '', checklist: [], is_recurring: 0, notes: '' });
+  input.value = '';
+  loadData();
+  renderTasksPage(document.getElementById('content-wrapper'));
 }
 function saveSetting(key, value) {
   state.settings[key] = value;
