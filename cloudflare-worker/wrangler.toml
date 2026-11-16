@@ -1,0 +1,9 @@
+name = "readai-planner"
+main = "worker.js"
+
+[triggers]
+# Uncomment after creating the Route in the dashboard, or set route here:
+route = { pattern = "readai.daniellecrizaldo.com/*", zone_name = "daniellecrizaldo.com" }
+
+[observability]
+enabled = true
