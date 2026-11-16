@@ -184,7 +184,8 @@ async function renderContent(container, page) {
       case 'completed': await renderCompletedPage(container); break;
       case 'work-notes':
       case 'notes': await renderNotesPage(container); break;
-      case 'work-meetings': await renderMeetingsPage(container); break;
+      case 'work-meetings':
+      case 'meetings': await renderMeetingsPage(container); break;
       case 'cascades': await renderCascadesPage(container); break;
       case 'settings': await renderSettingsPage(container); break;
       default: container.innerHTML = `<div class="empty-state"><i class="bi bi-construction"></i><h4>${getPageTitle(page)}</h4><p>Coming soon.</p></div>`; break;
