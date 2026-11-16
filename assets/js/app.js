@@ -1019,10 +1019,7 @@ async function openMeetingModal(id) {
 
   let m = currentMeetingId ? Storage.getById('meetings', currentMeetingId) : null;
   if (currentMeetingId && !m) return;
-  if (!m) m = { title: '', date_time: '', attendees: [], agenda: '', discussion_notes: '', decisions: '', action_items: [], related_project: '', is_archived: 0 };
-
-  const attendeesStr = Array.isArray(m.attendees) ? m.attendees.join(', ') : '';
-  const actionItems = Array.isArray(m.action_items) ? m.action_items : JSON.parse(m.action_items || '[]');
+  if (!m) m = { title: '', date_time: '', discussion_notes: '', decisions: '', is_archived: 0 };
 
   container.innerHTML = `
     <div class="modal fade" id="meeting-modal" tabindex="-1">
