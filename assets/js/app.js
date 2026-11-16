@@ -996,15 +996,15 @@ async function renderMeetingsPage(container) {
 function renderMeetingTable(meetings) {
   return `
     <table class="table table-pink table-hover mb-0">
-      <thead><tr><th>Meeting</th><th>Date & Time</th><th>Attendees</th><th>Project</th><th>Action Items</th><th class="text-end">Actions</th></tr></thead>
+      <thead><tr><th>Meeting</th><th>Date & Time</th><th>Discussion Notes</th><th class="text-end">Actions</th></tr></thead>
       <tbody>
-        ${meetings.map(m => {
-          const attendees = Array.isArray(m.attendees) ? m.attendees : JSON.parse(m.attendees || '[]');
-          const actions = Array.isArray(m.action_items) ? m.action_items : JSON.parse(m.action_items || '[]');
-          return `
-          <tr><td><strong>${escapeHtml(m.title)}</strong></td><td>${m.date_time ? dayjs(m.date_time).format('MMM D, YYYY h:mm A') : '-'}</td><td>${attendees.join(', ') || '-'}</td><td>${escapeHtml(m.related_project || '-')}</td><td>${actions.length}</td>
-            <td class="text-end"><button class="btn btn-sm btn-outline-secondary" onclick="openMeetingModal(${m.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteMeeting(${m.id})"><i class="bi bi-trash"></i></button></td></tr>`;
-        }).join('')}
+        ${meetings.map(m => `
+          <tr class="clickable-row" onclick="openMeetingLightbox(${m.id})">
+            <td><strong>${escapeHtml(m.title)}</strong></td>
+            <td>${m.date_time ? dayjs(m.date_time).format('MMM D, YYYY h:mm A') : '-'}</td>
+            <td class="text-muted small">${escapeHtml(truncateText(m.discussion_notes || 'No notes', 90))}</td>
+            <td class="text-end"><button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();openMeetingModal(${m.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger ms-2" onclick="event.stopPropagation();deleteMeeting(${m.id})"><i class="bi bi-trash"></i></button></td></tr>
+        `).join('')}
       </tbody>
     </table>
   `;
@@ -1034,12 +1034,8 @@ async function openMeetingModal(id) {
               <div class="row g-3">
                 <div class="col-md-12"><label class="form-label">Meeting Title *</label><input type="text" class="form-control" id="meeting-title" value="${escapeHtml(m.title)}" required></div>
                 <div class="col-md-6"><label class="form-label">Date & Time</label><input type="datetime-local" class="form-control" id="meeting-datetime" value="${m.date_time ? m.date_time.replace(' ', 'T').slice(0, 16) : ''}"></div>
-                <div class="col-md-6"><label class="form-label">Related Project</label><input type="text" class="form-control" id="meeting-project" value="${escapeHtml(m.related_project || '')}"></div>
-                <div class="col-md-12"><label class="form-label">Attendees (comma separated)</label><input type="text" class="form-control" id="meeting-attendees" value="${escapeHtml(attendeesStr)}"></div>
-                <div class="col-md-12"><label class="form-label">Agenda</label><textarea class="form-control" id="meeting-agenda" rows="3">${escapeHtml(m.agenda || '')}</textarea></div>
-                <div class="col-md-12"><label class="form-label">Discussion Notes</label><textarea class="form-control" id="meeting-discussion" rows="4">${escapeHtml(m.discussion_notes || '')}</textarea></div>
-                <div class="col-md-12"><label class="form-label">Decisions Made</label><textarea class="form-control" id="meeting-decisions" rows="3">${escapeHtml(m.decisions || '')}</textarea></div>
-                <div class="col-md-12"><label class="form-label">Action Items</label><div id="action-items-list">${renderActionItems(actionItems)}</div><button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addActionItem()"><i class="bi bi-plus"></i> Add Action Item</button></div>
+                <div class="col-md-12"><label class="form-label">Discussion Notes</label><textarea class="form-control" id="meeting-discussion" rows="12" style="min-height:280px">${escapeHtml(m.discussion_notes || '')}</textarea></div>
+                <div class="col-md-12"><label class="form-label">Decisions Made</label><textarea class="form-control" id="meeting-decisions" rows="4">${escapeHtml(m.decisions || '')}</textarea></div>
                 <div class="col-md-12"><div class="form-check mt-2"><input type="checkbox" class="form-check-input" id="meeting-archived" ${m.is_archived ? 'checked' : ''}><label class="form-check-label" for="meeting-archived">Archive</label></div></div>
               </div>
             </div>
@@ -1052,23 +1048,11 @@ async function openMeetingModal(id) {
 
   document.getElementById('meeting-form').onsubmit = function(e) {
     e.preventDefault();
-    const attendees = document.getElementById('meeting-attendees').value.split(',').filter(a => a.trim()).map(a => a.trim());
-    const actionItemsArr = [];
-    document.querySelectorAll('.action-item-row').forEach(row => {
-      const text = row.querySelector('.ai-text').value;
-      const assignee = row.querySelector('.ai-assignee').value;
-      const due = row.querySelector('.ai-due').value;
-      if (text.trim()) actionItemsArr.push({ text: text.trim(), assignee: assignee || null, due_date: due || null });
-    });
     const data = {
       title: document.getElementById('meeting-title').value,
       date_time: document.getElementById('meeting-datetime').value,
-      attendees: attendees,
-      agenda: document.getElementById('meeting-agenda').value,
       discussion_notes: document.getElementById('meeting-discussion').value,
       decisions: document.getElementById('meeting-decisions').value,
-      action_items: actionItemsArr,
-      related_project: document.getElementById('meeting-project').value,
       is_archived: document.getElementById('meeting-archived').checked ? 1 : 0
     };
     if (currentMeetingId) Storage.update('meetings', currentMeetingId, data);
@@ -1444,6 +1428,21 @@ function openTaskLightbox(id) {
     ${t.notes ? `<div class="lightbox-body mb-2"><strong>Notes</strong><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(t.notes)}</pre></div>` : ''}
     <div class="lightbox-actions d-flex gap-2">
       <button class="btn btn-sm btn-pink" onclick="closeLightbox();openTaskModal(${t.id})"><i class="bi bi-pencil"></i> Edit</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="closeLightbox()">Close</button>
+    </div>`);
+}
+
+function openMeetingLightbox(id) {
+  const m = Storage.getById('meetings', id);
+  if (!m) return;
+  openLightbox(`
+    <div class="lightbox-head"><h3>${escapeHtml(m.title)}</h3>
+      <div><span class="badge bg-secondary">${m.date_time ? dayjs(m.date_time).format('MMM D, YYYY h:mm A') : 'No date'}</span></div>
+    </div>
+    <div class="lightbox-body mb-2"><strong>Discussion Notes</strong><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(m.discussion_notes || 'No notes')}</pre></div>
+    ${m.decisions ? `<div class="lightbox-body mb-2"><strong>Decisions Made</strong><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(m.decisions)}</pre></div>` : ''}
+    <div class="lightbox-actions d-flex gap-2">
+      <button class="btn btn-sm btn-pink" onclick="closeLightbox();openMeetingModal(${m.id})"><i class="bi bi-pencil"></i> Edit</button>
       <button class="btn btn-sm btn-outline-secondary" onclick="closeLightbox()">Close</button>
     </div>`);
 }
