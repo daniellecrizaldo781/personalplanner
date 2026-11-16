@@ -523,19 +523,19 @@ function renderTaskTable(tasks) {
       <thead><tr><th></th><th>Task</th><th>Category</th><th>Priority</th><th>Status</th><th>Due Date</th><th class="text-end">Actions</th></tr></thead>
       <tbody>
         ${tasks.map(t => `
-          <tr>
-            <td><input type="checkbox" ${t.status === 'Completed' ? 'checked' : ''} onchange="toggleTaskComplete(${t.id}, this.checked)"></td>
+          <tr class="clickable-row" onclick="openTaskLightbox(${t.id})">
+            <td><input type="checkbox" ${t.status === 'Completed' ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTaskComplete(${t.id}, this.checked)"></td>
             <td><strong>${escapeHtml(t.title)}</strong>${t.is_recurring ? '<span class="badge bg-info text-dark ms-1" title="Recurring">↻</span>' : ''}${t.description ? `<div class="text-muted small text-truncate">${escapeHtml(truncateText(t.description, 80))}</div>` : ''}</td>
             <td>${escapeHtml(t.category || 'General')}</td>
             <td><span class="task-priority ${t.priority}">${t.priority}</span></td>
             <td>${t.status === 'Completed'
               ? `<span class="status-badge Completed">Completed</span>`
-              : `<select class="form-select form-select-sm" onchange="updateTaskStatus(${t.id}, this.value)">
+              : `<select class="form-select form-select-sm" onclick="event.stopPropagation()" onchange="updateTaskStatus(${t.id}, this.value)">
                   <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>Pending</option>
                   <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
                 </select>`}</td>
             <td>${formatDate(t.due_date, t.due_time)}</td>
-            <td class="text-end"><button class="btn btn-sm btn-outline-secondary" onclick="openTaskModal(${t.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${t.id})"><i class="bi bi-trash"></i></button></td>
+            <td class="text-end"><button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();openTaskModal(${t.id})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();openTaskLightbox(${t.id})"><i class="bi bi-eye"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();deleteTask(${t.id})"><i class="bi bi-trash"></i></button></td>
           </tr>`).join('')}
       </tbody>
     </table>
@@ -871,7 +871,7 @@ function renderNotesGrid(notes) {
     const tags = Array.isArray(n.tags) ? n.tags : JSON.parse(n.tags || '[]');
     return `
       <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
+        <div class="card h-100 clickable-card" onclick="openNoteLightbox(${n.id})">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span>${escapeHtml(n.title || 'Untitled')}</span>
             <div>${n.is_pinned ? '<i class="bi bi-pin-angle-fill text-warning"></i>' : ''}${n.is_important ? '<i class="bi bi-exclamation-octagon-fill text-danger"></i>' : ''}</div>
@@ -881,7 +881,7 @@ function renderNotesGrid(notes) {
             ${tags.length ? `<div>${tags.map(t => `<span class="badge bg-secondary me-1">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
             <div class="text-muted small mt-2">${escapeHtml(n.category || 'General')}</div>
           </div>
-          <div class="card-footer"><button class="btn btn-sm btn-outline-secondary" onclick="openNoteModal(${n.id})"><i class="bi bi-pencil"></i> Edit</button> <button class="btn btn-sm btn-outline-warning ms-2" onclick="toggleNotePin(${n.id})"><i class="bi bi-pin-${n.is_pinned ? 'fill' : 'angle'}"></i></button></div>
+          <div class="card-footer"><button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();openNoteModal(${n.id})"><i class="bi bi-pencil"></i> Edit</button> <button class="btn btn-sm btn-outline-warning ms-2" onclick="event.stopPropagation();toggleNotePin(${n.id})"><i class="bi bi-pin-${n.is_pinned ? 'fill' : 'angle'}"></i></button> <span class="btn btn-sm btn-outline-primary ms-auto" onclick="event.stopPropagation();openNoteLightbox(${n.id})"><i class="bi bi-eye"></i> View</span></div>
         </div>
       </div>`;
   }).join('');
@@ -1390,6 +1390,63 @@ async function dashQuickAdd() {
   loadData();
   renderDashboard(document.getElementById('content-wrapper'));
 }
+function openLightbox(html) {
+  let box = document.getElementById('app-lightbox');
+  if (box) box.remove();
+  box = document.createElement('div');
+  box.id = 'app-lightbox';
+  box.className = 'app-lightbox';
+  box.innerHTML = `<div class="app-lightbox-backdrop" onclick="closeLightbox()"></div><div class="app-lightbox-content">${html}</div>`;
+  document.body.appendChild(box);
+  document.addEventListener('keydown', escHandler);
+}
+function escHandler(e) { if (e.key === 'Escape') closeLightbox(); }
+function closeLightbox() {
+  const box = document.getElementById('app-lightbox');
+  if (box) box.remove();
+  document.removeEventListener('keydown', escHandler);
+}
+
+function openNoteLightbox(id) {
+  const n = Storage.getById('notes', id);
+  if (!n) return;
+  const tags = Array.isArray(n.tags) ? n.tags : JSON.parse(n.tags || '[]');
+  openLightbox(`
+    <div class="lightbox-head"><h3>${escapeHtml(n.title || 'Untitled')}</h3>
+      <div>${n.is_pinned ? '<span class="badge bg-warning text-dark me-1">Pinned</span>' : ''}${n.is_important ? '<span class="badge bg-danger me-1">Important</span>' : ''}<span class="badge bg-secondary">${escapeHtml(n.category || 'General')}</span></div>
+    </div>
+    <div class="lightbox-body"><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(n.content || '')}</pre></div>
+    <div class="lightbox-meta">${tags.length ? tags.map(t => `<span class="badge bg-primary me-1">#${escapeHtml(t)}</span>`).join('') : ''}
+      <div class="text-muted small mt-2">Updated ${n.updated_at ? dayjs(n.updated_at).format('MMM D, YYYY h:mm A') : ''}</div>
+    </div>
+    <div class="lightbox-actions d-flex gap-2">
+      <button class="btn btn-sm btn-pink" onclick="closeLightbox();openNoteModal(${n.id})"><i class="bi bi-pencil"></i> Edit</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="closeLightbox()">Close</button>
+    </div>`);
+}
+
+function openTaskLightbox(id) {
+  const t = Storage.getById('tasks', id);
+  if (!t) return;
+  const checklist = Array.isArray(t.checklist) ? t.checklist : JSON.parse(t.checklist || '[]');
+  openLightbox(`
+    <div class="lightbox-head"><h3>${escapeHtml(t.title)}</h3></div>
+    <div class="lightbox-meta d-flex flex-wrap gap-2 mb-2">
+      <span class="badge bg-${priorityBadge(t.priority)}">${t.priority}</span>
+      <span class="badge bg-secondary">${escapeHtml(t.category || 'General')}</span>
+      <span class="badge ${t.status === 'Completed' ? 'bg-success' : 'bg-info text-dark'}">${t.status}</span>
+      ${t.due_date ? `<span class="badge bg-outline-secondary text-dark border">Due: ${formatDate(t.due_date, t.due_time)}</span>` : ''}
+      ${t.is_recurring ? '<span class="badge bg-warning text-dark">Recurring</span>' : ''}
+    </div>
+    ${t.description ? `<div class="lightbox-body mb-2"><strong>Description</strong><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(t.description)}</pre></div>` : ''}
+    ${checklist.length ? `<div class="lightbox-body mb-2"><strong>Checklist</strong><ul class="list-unstyled mt-1">${checklist.map(c => `<li>${c.done ? '<i class="bi bi-check-square-fill text-success me-2"></i>' : '<i class="bi bi-square me-2"></i>'}${escapeHtml(c.text)}</li>`).join('')}</ul></div>` : ''}
+    ${t.notes ? `<div class="lightbox-body mb-2"><strong>Notes</strong><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(t.notes)}</pre></div>` : ''}
+    <div class="lightbox-actions d-flex gap-2">
+      <button class="btn btn-sm btn-pink" onclick="closeLightbox();openTaskModal(${t.id})"><i class="bi bi-pencil"></i> Edit</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="closeLightbox()">Close</button>
+    </div>`);
+}
+
 function saveSetting(key, value) {
   state.settings[key] = value;
   Storage.saveSettings(state.settings);

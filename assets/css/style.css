@@ -265,3 +265,16 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 .modal-header::after { content: ''; position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, var(--pink-primary) 0%, transparent 70%); z-index: 0; }
 .modal-header > * { position: relative; z-index: 1; }
 .modal-footer { border-top: 1px solid var(--pink-secondary); }
+/* Lightbox */
+.app-lightbox { position: fixed; inset: 0; z-index: 3000; }
+.app-lightbox-backdrop { position: absolute; inset: 0; background: rgba(30,20,35,0.55); backdrop-filter: blur(2px); }
+.app-lightbox-content { position: relative; z-index: 3001; width: min(720px, 92vw); margin: 5vh auto; max-height: 88vh; overflow-y: auto; background: var(--white); border-radius: var(--border-radius); padding: 24px; box-shadow: var(--shadow-lg, 0 10px 40px rgba(0,0,0,0.2)); }
+.lightbox-head { padding-bottom: 12px; border-bottom: 2px solid var(--pink-secondary); margin-bottom: 16px; }
+.lightbox-head h3 { margin: 0; color: var(--pink-darker); font-weight: 600; }
+.lightbox-actions { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--pink-secondary); }
+
+/* Clickable cards & rows */
+.clickable-card { cursor: pointer; transition: var(--transition); }
+.clickable-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--pink-strong); }
+.clickable-row { cursor: pointer; }
+.clickable-row:hover { background: var(--pink-primary); }
